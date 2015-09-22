@@ -1,0 +1,98 @@
+<html>
+    <head>
+        <title></title>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script type ="text/javascript">
+            // this triggers the connection event in our server!
+            var socket = io.connect(),
+                sessionUserName = '',
+                formattedMessage = '';
+            // var window.onbeforeunload = clearCookies;
+                
+            socket.on('message_to_client', function(data){
+                formattedMessage = "<b>" + data.username + ": </b>" + data.message + "<br>";
+                $('#chatmessage').append(formattedMessage);
+            });
+
+            socket.on('add_User', function(data){
+                formattedMessage = data + "<br>";
+                $('#chatmessage').append(formattedMessage);
+            });
+
+            socket.on('userList', function(userlisting){
+                var list = '';
+                for (var i = 0; i < userlisting.length; i++) {
+                    list += userlisting[i] + '<br/>';
+                };
+                $('#userlist').html(list);
+            });
+
+            socket.on('disconnect', function(){
+                socket.emit('disconnected', sessionUserName);
+            });
+
+            function sendMessage(){
+                var msg = document.getElementById("user_message").value;
+                document.getElementById("user_message").value = "";
+                socket.emit("message_to_server",{message:msg, username: sessionUserName});
+            };
+
+            function addUser(){
+                sessionStorage['username'] = document.getElementById("username").value;
+                sessionUserName = sessionStorage['username']
+                socket.emit("new_user",sessionUserName, function(data){
+                    console.log(data);
+                    if(data){
+                        $('#new_session').hide();
+                        $('#discussions').show();
+                    } else {
+                        $("#userIdError").html("Name already in use. Please use another name");
+                    }
+                });
+                $('#username').val('');
+            };
+        </script>
+
+        <style type="text/css">
+            #discussions{
+                display: none;
+            }
+            #chatbox{ 
+                width: 60%;
+                display: inline-block;
+                vertical-align: top;
+            }
+            #chatmessage{
+                height: 43%;
+                overflow-y: auto; 
+                border: 1px #000 solid;
+                padding-top: 5px;
+            }
+            #userlist{
+                overflow-y: auto; 
+                width: 35%;
+                height: 50%;
+                border: 1px #000 solid;
+                display: inline-block;
+            }
+        </style>
+    </head>
+    <body>
+        <div id='new_session'>
+            <p id="userIdError"></p>
+            <p>Enter your name:</p>
+            <input type='text' id='username'/>
+            <button onclick="addUser()">Enter</button>
+        </div>
+        <div id='discussions'>
+            <div id='chatbox'>
+                <div id='chatmessage'></div>
+                <br>
+                <input type='text' id='user_message'/>
+                <button onclick="sendMessage()">Send</button>
+            </div>
+            <div id='userlist'></div>
+        </div>
+    </body>
+</html>

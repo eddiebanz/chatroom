@@ -1,0 +1,10 @@
+{
+	"name": "chat_room",
+	"description" : "create a chatroom using sockets",
+	"dependencies":{
+		"ejs": "*",
+		"express": "*",
+		"socket.io": "*",
+		"validator":"*"
+	}
+}
